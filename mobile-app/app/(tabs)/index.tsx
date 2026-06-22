@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet } from "react-native";
+import { useRouter } from "expo-router"; // 1. Import the router
 import CustomButton from "@/components/CustomButton";
 import useAttendance from "@/hooks/useAttendance";
 
 export default function HomeScreen() {
-  const { status, setStatus, clockIn, clockOut, checkInTime, checkOutTime} = useAttendance();
+  const router = useRouter(); // 2. Initialize the router
+  const { status, setStatus, clockIn, clockOut, checkInTime, checkOutTime } = useAttendance();
 
   return (
     <View style={styles.container}>
@@ -14,10 +16,11 @@ export default function HomeScreen() {
       </Text>
       <Text>checkIn: {checkInTime}</Text>
       <Text>checkOut: {checkOutTime}</Text>
+      
       <CustomButton
-  title="Clock-In"
-  onPress={clockIn}
-/>
+        title="Clock-In"
+        onPress={clockIn}
+      />
 
       <CustomButton
         title="Clock Out"
@@ -29,12 +32,16 @@ export default function HomeScreen() {
         onPress={() => setStatus("Leave Applied")}
       />
 
+      {/* 3. Updated handler to navigate to your expenses tab page */}
       <CustomButton
         title="Expenses"
-        onPress={() => setStatus("Expenses")}
+        onPress={() => {
+          setStatus("Expenses");
+          router.push('/expenses');
+        }}
       />
 
-      <Text>Welcome Aman 🚀</Text>
+      <Text>Welcome Aman ,yash 🚀</Text>
     </View>
   );
 }
