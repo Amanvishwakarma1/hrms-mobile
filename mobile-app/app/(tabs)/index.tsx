@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from "react-native";
 import { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { USER_CONFIG } from "@/constants/UserRoles";
+=======
+import { View, Text, StyleSheet } from "react-native";
+import { useRouter } from "expo-router"; // 1. Import the router
+>>>>>>> 5c8c823881a39b52032a21db86d03612d6379ba5
 import CustomButton from "@/components/CustomButton";
 import useAttendance from "@/hooks/useAttendance";
 import AttendanceCard from "@/components/AttendanceCard";
@@ -9,13 +14,19 @@ import AttendanceHistory from "@/components/AttendanceHistory";
 import AttendanceMap from "@/components/AttendanceMap";
 
 export default function HomeScreen() {
+<<<<<<< HEAD
   const { status, clockIn, clockOut, checkInTime, checkOutTime, workingHours, attendanceHistory, clearHistory } = useAttendance();
   const [date, setDate] = useState(new Date());
   const [show, setShow] = useState(false);
+=======
+  const router = useRouter(); // 2. Initialize the router
+  const { status, setStatus, clockIn, clockOut, checkInTime, checkOutTime } = useAttendance();
+>>>>>>> 5c8c823881a39b52032a21db86d03612d6379ba5
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>HRMS Mobile</Text>
+<<<<<<< HEAD
       <View style={[styles.badge, { backgroundColor: USER_CONFIG.role === 'OFFICE' ? '#e1f5fe' : '#fff3e0' }]}>
         <Text style={styles.badgeText}>Mode: {USER_CONFIG.role} OPERATOR</Text>
       </View>
@@ -37,6 +48,41 @@ export default function HomeScreen() {
       <AttendanceMap history={attendanceHistory} selectedDate={date.toLocaleDateString()} />
       <Text style={styles.footer}>Welcome Aman, Yash 🚀</Text>
     </ScrollView>
+=======
+
+      <Text style={styles.status}>
+        Status: {status}
+      </Text>
+      <Text>checkIn: {checkInTime}</Text>
+      <Text>checkOut: {checkOutTime}</Text>
+      
+      <CustomButton
+        title="Clock-In"
+        onPress={clockIn}
+      />
+
+      <CustomButton
+        title="Clock Out"
+        onPress={clockOut}
+      />
+
+      <CustomButton
+        title="Apply Leave"
+        onPress={() => setStatus("Leave Applied")}
+      />
+
+      {/* 3. Updated handler to navigate to your expenses tab page */}
+      <CustomButton
+        title="Expenses"
+        onPress={() => {
+          setStatus("Expenses");
+          router.push('/expenses');
+        }}
+      />
+
+      <Text>Welcome Aman ,yash 🚀</Text>
+    </View>
+>>>>>>> 5c8c823881a39b52032a21db86d03612d6379ba5
   );
 }
 
