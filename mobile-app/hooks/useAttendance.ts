@@ -61,7 +61,16 @@ export default function useAttendance() {
     );
   };
 
-  const stopWatchingLocation = () => { if (locationSubscription.current) { locationSubscription.current.remove(); locationSubscription.current = null; } };
+  const stopWatchingLocation = () => { 
+    if (locationSubscription.current) { 
+      try {
+        locationSubscription.current.remove(); 
+      } catch (err) {
+        console.warn("Could not cleanly remove location subscription:", err);
+      }
+      locationSubscription.current = null; 
+    } 
+  };
 
   const loadData = async () => {
     // PRODUCTION NOTE: Replace this with: const { data } = await api.get('/attendance/history');
