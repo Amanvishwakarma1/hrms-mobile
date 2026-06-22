@@ -1,9 +1,13 @@
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
-import { useColorScheme } from "react-native";
+import { LogBox, Platform, useColorScheme } from "react-native";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
+
+if (Platform.OS === 'web') {
+  LogBox.ignoreAllLogs(true);
+}
 
 export default function RootLayout() {
   return (
