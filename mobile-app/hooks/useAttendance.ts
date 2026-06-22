@@ -27,21 +27,25 @@ export default function useAttendance() {
   useEffect(() => { loadData(); return () => stopWatchingLocation(); }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: any;
     if (status === "Checked In" && checkInTimestamp) {
       interval = setInterval(() => {
         const diffMs = Date.now() - checkInTimestamp;
-        if (Math.floor(diffMs / 1000) >= 300) clockOut();
-        else {
-          const m = Math.floor((Math.floor(diffMs / 1000) % 3600) / 60);
-          const s = Math.floor(diffMs / 1000) % 60;
-          setLiveTimer(`00:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`);
+        if (Math.floor(diffMs / 1000) >= 300) {
+          clockOut();
+        } else {
+          const totalSecs = Math.floor(diffMs / 1000);
+          const m = Math.floor((totalSecs % 3600) / 60);
+          const s = totalSecs % 60;
+          const timerString = `00:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+          setLiveTimer(timerString);
+          setWorkingHours(timerString); // Update workingHours live!
         }
       }, 1000);
       startWatchingLocation();
     } else stopWatchingLocation();
     return () => { clearInterval(interval); stopWatchingLocation(); };
-  }, [status, checkInTimestamp]);
+  }, [status, checkInTimestamp, attendanceHistory, checkInTime]);
 
   const startWatchingLocation = async () => {
     if (Platform.OS === 'web') return;
@@ -82,35 +86,83 @@ export default function useAttendance() {
 
   const clockIn = async () => {
     try {
+      // Reset values for the new clock-in session
+      setCheckInTime("");
+      setCheckOutTime("");
+      setWorkingHours("");
+      setLiveTimer("00:00:00");
+
       let lat = 0, lon = 0;
       if (Platform.OS !== 'web') {
-        const loc = await Location.getCurrentPositionAsync({});
-        lat = loc.coords.latitude;
-        lon = loc.coords.longitude;
+        try {
+          const loc = await Location.getCurrentPositionAsync({});
+          lat = loc.coords.latitude;
+          lon = loc.coords.longitude;
+        } catch (err) {
+          console.warn("Could not get position on native device:", err);
+        }
       }
       // PRODUCTION API CALL
       // await api.post('/attendance/clock-in', { lat, lon });
       
       const time = new Date().toLocaleTimeString();
       const timestamp = Date.now();
-      setCheckInTimestamp(timestamp); setCheckInTime(time); setStatus("Checked In");
+      setCheckInTimestamp(timestamp); 
+      setCheckInTime(time); 
+      setStatus("Checked In");
     } catch (e) { console.error("Clock-in failed", e); }
   };
 
   const clockOut = async () => {
     try {
-      let lat = 0, lon = 0;
+      let lat = 28.6692, lon = 77.4538; // Default fallback coordinates
       if (Platform.OS !== 'web') {
-        const loc = await Location.getCurrentPositionAsync({});
-        lat = loc.coords.latitude;
-        lon = loc.coords.longitude;
+        try {
+          const loc = await Location.getCurrentPositionAsync({});
+          lat = loc.coords.latitude;
+          lon = loc.coords.longitude;
+        } catch (err) {
+          console.warn("Could not get position on native device:", err);
+        }
       }
       // PRODUCTION API CALL
       // await api.post('/attendance/clock-out', { lat, lon });
 
+      const time = new Date().toLocaleTimeString();
+      setCheckOutTime(time);
       setStatus("Checked Out");
-      // Clear local state
-      setTimeout(async () => { setStatus("Not checked in"); setCheckInTimestamp(null); setLiveTimer("00:00:00"); }, 2000);
+
+      // Calculate final working hours
+      let finalWorkingHours = "00:00:00";
+      if (checkInTimestamp) {
+        const diffMs = Date.now() - checkInTimestamp;
+        const totalSecs = Math.floor(diffMs / 1000);
+        const m = Math.floor((totalSecs % 3600) / 60);
+        const s = totalSecs % 60;
+        finalWorkingHours = `00:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }
+      setWorkingHours(finalWorkingHours);
+
+      // Create new attendance record to add to history
+      const newRecord = {
+        date: new Date().toLocaleDateString(),
+        checkIn: checkInTime,
+        checkOut: time,
+        workingHours: finalWorkingHours,
+        coords: { lat, lon }
+      };
+
+      // Save to local history state and AsyncStorage
+      const updatedHistory = [newRecord, ...attendanceHistory];
+      setAttendanceHistory(updatedHistory);
+      await AsyncStorage.setItem("attendanceHistory", JSON.stringify(updatedHistory));
+
+      // Clear local timer state after 2 seconds, keeping checkInTime, checkOutTime, and workingHours visible
+      setTimeout(async () => { 
+        setStatus("Not checked in"); 
+        setCheckInTimestamp(null); 
+        setLiveTimer("00:00:00"); 
+      }, 2000);
     } catch (e) { console.error("Clock-out failed", e); }
   };
 

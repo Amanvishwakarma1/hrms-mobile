@@ -11,7 +11,7 @@ import AttendanceMap from "@/components/AttendanceMap";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { status, setStatus, clockIn, clockOut, checkInTime, checkOutTime, workingHours, attendanceHistory, clearHistory } = useAttendance();
+  const { status, setStatus, clockIn, clockOut, checkInTime, checkOutTime, workingHours, attendanceHistory, clearHistory, liveTimer } = useAttendance();
   const [date, setDate] = useState(new Date());
   const [show, setShow] = useState(false);
 
@@ -29,7 +29,7 @@ export default function HomeScreen() {
         <CustomButton title="Apply Leave" onPress={() => { if (setStatus) setStatus("Leave Applied"); }} />
         <CustomButton title="Expenses" onPress={() => { if (setStatus) setStatus("Expenses"); router.push('/expenses'); }} />
       </View>
-      <AttendanceCard status={status} checkInTime={checkInTime} checkOutTime={checkOutTime} workingHours={workingHours} />
+      <AttendanceCard status={status} checkInTime={checkInTime} checkOutTime={checkOutTime} workingHours={workingHours} liveTimer={liveTimer} />
       <AttendanceHistory history={attendanceHistory} />
       <TouchableOpacity style={styles.clearBtn} onPress={() => Alert.alert("Confirm", "Delete all records?", [{ text: "Cancel" }, { text: "Delete", onPress: clearHistory }])}>
         <Text style={styles.clearBtnText}>Clear History</Text>

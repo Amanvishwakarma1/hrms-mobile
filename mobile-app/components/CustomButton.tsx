@@ -11,7 +11,7 @@ export default function CustomButton({
             onPress={onPress}
         >
             <Text
-                style={StyleSheet.text}
+                style={styles.text}
             >
                 {title}
             </Text>
