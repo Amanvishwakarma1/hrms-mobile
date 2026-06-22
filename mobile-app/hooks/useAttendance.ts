@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { USER_CONFIG } from "@/constants/UserRoles";
@@ -81,9 +82,14 @@ export default function useAttendance() {
 
   const clockIn = async () => {
     try {
-      const loc = await Location.getCurrentPositionAsync({});
+      let lat = 0, lon = 0;
+      if (Platform.OS !== 'web') {
+        const loc = await Location.getCurrentPositionAsync({});
+        lat = loc.coords.latitude;
+        lon = loc.coords.longitude;
+      }
       // PRODUCTION API CALL
-      // await api.post('/attendance/clock-in', { lat: loc.coords.latitude, lon: loc.coords.longitude });
+      // await api.post('/attendance/clock-in', { lat, lon });
       
       const time = new Date().toLocaleTimeString();
       const timestamp = Date.now();
@@ -92,15 +98,20 @@ export default function useAttendance() {
   };
 
   const clockOut = async () => {
-    const loc = await Location.getCurrentPositionAsync({});
-    const time = new Date().toLocaleTimeString();
-    
-    // PRODUCTION API CALL
-    // await api.post('/attendance/clock-out', { lat: loc.coords.latitude, lon: loc.coords.longitude });
+    try {
+      let lat = 0, lon = 0;
+      if (Platform.OS !== 'web') {
+        const loc = await Location.getCurrentPositionAsync({});
+        lat = loc.coords.latitude;
+        lon = loc.coords.longitude;
+      }
+      // PRODUCTION API CALL
+      // await api.post('/attendance/clock-out', { lat, lon });
 
-    setStatus("Checked Out");
-    // Clear local state
-    setTimeout(async () => { setStatus("Not checked in"); setCheckInTimestamp(null); setLiveTimer("00:00:00"); }, 2000);
+      setStatus("Checked Out");
+      // Clear local state
+      setTimeout(async () => { setStatus("Not checked in"); setCheckInTimestamp(null); setLiveTimer("00:00:00"); }, 2000);
+    } catch (e) { console.error("Clock-out failed", e); }
   };
 
   const clearHistory = async () => { await AsyncStorage.removeItem("attendanceHistory"); setAttendanceHistory([]); };
