@@ -43,6 +43,7 @@ export default function useAttendance() {
   }, [status, checkInTimestamp]);
 
   const startWatchingLocation = async () => {
+    if (Platform.OS === 'web') return;
     let { status: permStatus } = await Location.requestForegroundPermissionsAsync();
     if (permStatus !== "granted") return;
     locationSubscription.current = await Location.watchPositionAsync(
