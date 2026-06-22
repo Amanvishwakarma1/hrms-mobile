@@ -1,27 +1,37 @@
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { Slot, useRouter, useSegments } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
+import { useColorScheme } from "react-native";
+import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
 
 export default function RootLayout() {
-<<<<<<< HEAD
-  return <AuthProvider><LayoutContent /></AuthProvider>;
+  return (
+    <AuthProvider>
+      <LayoutContent />
+    </AuthProvider>
+  );
 }
 
 function LayoutContent() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const segments = useSegments();
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     if (isLoading) return;
     const inAuthGroup = segments[0] === "(auth)";
-    if (!user && !inAuthGroup) router.replace("/(auth)/login");
-    else if (user && inAuthGroup) router.replace("/(tabs)");
+    if (!user && !inAuthGroup) {
+      router.replace("/(auth)/login");
+    } else if (user && inAuthGroup) {
+      router.replace("/(tabs)");
+    }
   }, [user, isLoading, segments]);
 
-  return <Slot />;
-=======
-  const colorScheme = useColorScheme();
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -30,7 +40,6 @@ function LayoutContent() {
           name="(tabs)"
           options={{ headerShown: false }}
         />
-
         <Stack.Screen
           name="expense-create"
           options={{
@@ -38,7 +47,6 @@ function LayoutContent() {
             presentation: 'card',
           }}
         />
-
         <Stack.Screen
           name="modal"
           options={{
@@ -47,9 +55,7 @@ function LayoutContent() {
           }}
         />
       </Stack>
-
       <StatusBar style="auto" />
     </ThemeProvider>
   );
->>>>>>> 5c8c823881a39b52032a21db86d03612d6379ba5
 }
