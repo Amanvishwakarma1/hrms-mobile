@@ -15,6 +15,15 @@ export default function HomeScreen() {
   const [date, setDate] = useState(new Date());
   const [show, setShow] = useState(false);
 
+  const onChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShow(false);
+    }
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>HRMS Mobile</Text>
@@ -36,10 +45,24 @@ export default function HomeScreen() {
       </TouchableOpacity>
       <View style={styles.datePickerContainer}>
         <TouchableOpacity style={styles.navBtn} onPress={() => { const d = new Date(date); d.setDate(d.getDate() - 1); setDate(d); }}><Text style={styles.btnText}>◀</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.dateDisplay} onPress={() => setShow(true)}><Text style={styles.dateText}>{date.toLocaleDateString()}</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.dateDisplay} onPress={() => { if (Platform.OS !== 'web') setShow(true); }}><Text style={styles.dateText}>{date.toLocaleDateString()}</Text></TouchableOpacity>
         <TouchableOpacity style={styles.navBtn} onPress={() => { const d = new Date(date); d.setDate(d.getDate() + 1); setDate(d); }}><Text style={styles.btnText}>▶</Text></TouchableOpacity>
       </View>
-      {show && <DateTimePicker value={date} mode="date" onChange={(e, d) => { setShow(false); if(d) setDate(d); }} />}
+      {show && Platform.OS !== 'web' && (
+        <View style={Platform.OS === 'ios' ? styles.iosPickerContainer : null}>
+          <DateTimePicker 
+            value={date} 
+            mode="date" 
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onChange} 
+          />
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity style={styles.doneBtn} onPress={() => setShow(false)}>
+              <Text style={styles.doneBtnText}>Done</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
       <AttendanceMap history={attendanceHistory} selectedDate={date.toLocaleDateString()} />
       <Text style={styles.footer}>Welcome Aman, Yash 🚀</Text>
     </ScrollView>
@@ -59,5 +82,29 @@ const styles = StyleSheet.create({
   dateText: { fontWeight: 'bold' },
   navBtn: { backgroundColor: '#007AFF', padding: 12, borderRadius: 12, width: 50, alignItems: 'center' },
   btnText: { color: '#fff', fontWeight: 'bold' },
-  footer: { marginTop: 30, color: '#999' }
+  footer: { marginTop: 30, color: '#999' },
+  iosPickerContainer: {
+    backgroundColor: '#ffffff',
+    width: '90%',
+    borderRadius: 12,
+    padding: 10,
+    marginVertical: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  doneBtn: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  doneBtnText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
 });

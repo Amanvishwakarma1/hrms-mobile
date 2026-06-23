@@ -1,4 +1,5 @@
 // mobile-app/constants/API.ts
+import Constants from 'expo-constants';
 
 const getBaseUrl = (): string => {
   // Check if running inside a browser environment (Expo Web)
@@ -15,6 +16,15 @@ const getBaseUrl = (): string => {
     // If running on a local development server
     if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
       return 'http://localhost:8000/api';
+    }
+  }
+  
+  // Try resolving the dynamic debugger/packager IP for physical mobile devices running Expo Go
+  const hostUri = Constants.expoConfig?.hostUri; // e.g., "192.168.1.44:8081"
+  if (hostUri) {
+    const localIp = hostUri.split(':')[0];
+    if (localIp) {
+      return `http://${localIp}:8000/api`;
     }
   }
   
