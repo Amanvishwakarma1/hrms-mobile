@@ -31,14 +31,14 @@ const getBaseUrl = (): string => {
       // If it is a tunnel domain, we cannot connect to port 8000 of that tunnel.
       // We fall back to the public backend localtunnel URL so it works from anywhere!
       if (localIp.includes('exp.direct') || localIp.includes('ngrok')) {
-        return 'https://tidy-dolls-judge.loca.lt/api';
+        return 'https://upset-carrots-battle.loca.lt/api';
       }
       return `http://${localIp}:8000/api`;
     }
   }
   
   // Fallback static production URL string for native emulators or manual routing (defaulting to public localtunnel backend)
-  return 'https://tidy-dolls-judge.loca.lt/api';
+  return 'https://upset-carrots-battle.loca.lt/api';
 };
 
 export const API_BASE_URL = getBaseUrl();
