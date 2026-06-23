@@ -20,16 +20,21 @@ const getBaseUrl = (): string => {
   }
   
   // Try resolving the dynamic debugger/packager IP for physical mobile devices running Expo Go
-  const hostUri = Constants.expoConfig?.hostUri; // e.g., "192.168.1.44:8081"
+  const hostUri = Constants.expoConfig?.hostUri; // e.g., "192.168.1.44:8081" or "tv3ptzy-anonymous-8081.exp.direct"
   if (hostUri) {
     const localIp = hostUri.split(':')[0];
     if (localIp) {
+      // If it is a tunnel domain, we cannot connect to port 8000 of that tunnel.
+      // We must fall back to the host computer's local LAN IP.
+      if (localIp.includes('exp.direct') || localIp.includes('ngrok')) {
+        return 'http://192.168.1.44:8000/api';
+      }
       return `http://${localIp}:8000/api`;
     }
   }
   
-  // Fallback static production URL string for native emulators or manual routing (defaulting to local backend)
-  return 'http://localhost:8000/api';
+  // Fallback static production URL string for native emulators or manual routing (defaulting to local backend on LAN IP)
+  return 'http://192.168.1.44:8000/api';
 };
 
 export const API_BASE_URL = getBaseUrl();
