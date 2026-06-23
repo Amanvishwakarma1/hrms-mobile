@@ -1,9 +1,19 @@
 // mobile-app/constants/API.ts
 import Constants from 'expo-constants';
 import axios from 'axios';
+import { getSecureItem } from '@/utils/storage';
 
 // Set global headers to bypass localtunnel reminder screen automatically
 axios.defaults.headers.common['Bypass-Tunnel-Reminder'] = 'true';
+
+// Inject authorization token dynamically for all raw axios requests
+axios.interceptors.request.use(async (config) => {
+  const token = await getSecureItem('userToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const getBaseUrl = (): string => {
   // Check if running inside a browser environment (Expo Web)
