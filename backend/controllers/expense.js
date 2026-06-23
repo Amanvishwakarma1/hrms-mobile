@@ -2,18 +2,17 @@ const Expense = require('../models/Expense');
 
 exports.getAllExpenses = async (req, res) => {
   try {
-    console.log("--- [BACKEND] API hit: Fetching all expenses ---");
+    console.log(`--- [BACKEND] API hit: Fetching expenses for User ID: ${req.user.id} ---`);
     
     const expenses = await Expense.findAll({
+      where: { UserId: req.user.id },
       order: [['createdAt', 'DESC']]
     });
     
     console.log(`--- [BACKEND] Successfully retrieved ${expenses.length} records ---`);
     return res.status(200).json(expenses);
   } catch (error) {
-    // CRITICAL: Logging the full error object reveals exactly why your DB connection is breaking
     console.error('❌ Fetch exception encountered:', error); 
-    
     return res.status(500).json({ 
       error: 'Database execution failure retrieving expense items.',
       details: error.message 
@@ -53,7 +52,8 @@ exports.createExpenseClaim = async (req, res) => {
       category: category.trim(),
       amount: parsedAmount,
       description: description ? description.trim() : null,
-      invoiceUrl
+      invoiceUrl,
+      UserId: req.user.id // Associate with authenticated employee ID
     });
 
     console.log(`--- [BACKEND] Expense successfully created with ID: ${newExpense.id} ---`);

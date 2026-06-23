@@ -8,8 +8,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getSecureItem('userToken').then(token => {
-      if (token) setUser({ token });
+    Promise.all([
+      getSecureItem('userToken'),
+      getSecureItem('userProfile')
+    ]).then(([token, profileStr]) => {
+      if (token && profileStr) {
+        try {
+          const profile = JSON.parse(profileStr);
+          setUser({ token, ...profile });
+        } catch (e) {
+          setUser({ token });
+        }
+      }
       setIsLoading(false);
     });
   }, []);

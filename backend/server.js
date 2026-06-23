@@ -3,7 +3,24 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const sequelize = require('./config/database');
+
+// Import Models to establish relationships
+const User = require('./models/User');
+const Expense = require('./models/Expense');
+const Attendance = require('./models/Attendance');
+
+// Establish associations
+User.hasMany(Expense, { onDelete: 'CASCADE' });
+Expense.belongsTo(User);
+
+User.hasMany(Attendance, { onDelete: 'CASCADE' });
+Attendance.belongsTo(User);
+
+// Import Routes
+const authRoutes = require('./routes/auth');
 const expenseRoutes = require('./routes/expense');
+const attendanceRoutes = require('./routes/attendance');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -12,7 +29,6 @@ const PORT = process.env.PORT || 8000;
 app.set('trust proxy', 1);
 
 // FIXED CORS: When withCredentials is true, origin CANNOT be '*'
-// It must explicitly reflect the requesting origin back or handle it dynamically
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or curl) or any origin in development
@@ -49,15 +65,46 @@ if (!fs.existsSync(uploadDir)){
 }
 
 app.use('/static/uploads', express.static(uploadDir));
+
+// Route mappings
+app.use('/api/auth', authRoutes);
 app.use('/api/expenses', expenseRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/admin', adminRoutes);
+
+// Seed function to create default users if the DB is empty
+const seedUsers = async () => {
+  const count = await User.count();
+  if (count === 0) {
+    console.log('--- Seeding default users into the database ---');
+    await User.bulkCreate([
+      {
+        name: 'Admin User',
+        email: 'admin@hrms.com',
+        password: 'password123',
+        role: 'admin'
+      },
+      {
+        name: 'Employee User',
+        email: 'employee@hrms.com',
+        password: 'password123',
+        role: 'employee'
+      }
+    ]);
+    console.log('--- Seeding completed successfully ---');
+  }
+};
 
 // Database Layer Connection Lifecycle Verification
 sequelize.sync({ force: false })
-  .then(() => {
+  .then(async () => {
     console.log('PostgreSQL architecture connected and mapped via Sequelize ORM smoothly.');
     
+    // Seed default users
+    await seedUsers();
+    
     // Switch to local standard host binding to bypass internal Codespaces proxy mismatches
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server executing active connection interface protocols across port: ${PORT}`);
     });
   })
