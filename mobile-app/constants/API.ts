@@ -1,5 +1,9 @@
 // mobile-app/constants/API.ts
 import Constants from 'expo-constants';
+import axios from 'axios';
+
+// Set global headers to bypass localtunnel reminder screen automatically
+axios.defaults.headers.common['Bypass-Tunnel-Reminder'] = 'true';
 
 const getBaseUrl = (): string => {
   // Check if running inside a browser environment (Expo Web)
@@ -25,16 +29,16 @@ const getBaseUrl = (): string => {
     const localIp = hostUri.split(':')[0];
     if (localIp) {
       // If it is a tunnel domain, we cannot connect to port 8000 of that tunnel.
-      // We must fall back to the host computer's local LAN IP.
+      // We fall back to the public backend localtunnel URL so it works from anywhere!
       if (localIp.includes('exp.direct') || localIp.includes('ngrok')) {
-        return 'http://192.168.1.44:8000/api';
+        return 'https://tidy-dolls-judge.loca.lt/api';
       }
       return `http://${localIp}:8000/api`;
     }
   }
   
-  // Fallback static production URL string for native emulators or manual routing (defaulting to local backend on LAN IP)
-  return 'http://192.168.1.44:8000/api';
+  // Fallback static production URL string for native emulators or manual routing (defaulting to public localtunnel backend)
+  return 'https://tidy-dolls-judge.loca.lt/api';
 };
 
 export const API_BASE_URL = getBaseUrl();
