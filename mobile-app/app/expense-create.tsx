@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import { API_BASE_URL } from '@/constants/API';
+import { getSecureItem } from '@/utils/storage';
 
 export default function ExpenseCreateScreen() {
   const router = useRouter();
@@ -87,7 +88,7 @@ export default function ExpenseCreateScreen() {
         const type = match ? `image/${match[1]}` : `image/jpeg`;
         
         formData.append('file', {
-          uri: Platform.OS === 'ios' ? imageUri.replace('file://', '') : imageUri,
+          uri: imageUri,
           name: filename,
           type,
         } as any);
@@ -101,18 +102,37 @@ export default function ExpenseCreateScreen() {
       setIsLoading(true);
       console.log("Submitting payload to base endpoint: ", `${API_BASE_URL}/expenses`);
       
-      await axios.post(`${API_BASE_URL}/expenses`, formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data' 
-        },
-        withCredentials: true
+      const token = await getSecureItem('userToken');
+      const headers: Record<string, string> = {
+        'Accept': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/expenses`, {
+        method: 'POST',
+        headers,
+        body: formData,
       });
+
+      const responseText = await response.text();
+      let responseData: any = {};
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (parseErr) {
+        console.error("Failed to parse response as JSON:", responseText);
+      }
+
+      if (!response.ok) {
+        throw new Error(responseData.error || `Server responded with status ${response.status}`);
+      }
 
       notify('Success', 'Expense claims securely synchronized directly to the database!', () => {
         router.back();
       });
     } catch (err: any) {
-      console.error("Network upload exception recorded: ", err?.response?.data || err.message);
+      console.error("Network upload exception recorded: ", err.message);
       notify('Submission Error', `Failed to connect to the HRMS Backend API: ${err.message}`);
     } finally {
       setIsLoading(false);
